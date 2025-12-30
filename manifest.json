@@ -6,7 +6,7 @@
   "permissions": ["activeTab", "scripting"],
   "action": {
     "default_popup": "popup.html",
-    "default_icon": "icon.jpeg" 
+    "default_icon": "icon.jpg" 
   },
   "host_permissions": ["https://generativelanguage.googleapis.com/*"]
 }
