@@ -34,6 +34,21 @@ summarizeBtn.addEventListener('click', async () => {
     });
 
     const data = await response.json();
+    
+    // Check if the API returned an error
+    if (data.error) {
+      throw new Error(data.error.message || "API Error");
+    }
+
+    // Check if candidates exist before reading index 0
+    if (data.candidates && data.candidates.length > 0) {
+      const summary = data.candidates[0].content.parts[0].text;
+      output.innerText = summary;
+      loader.classList.add('hidden');
+      resultContainer.classList.remove('hidden');
+    } else {
+      throw new Error("AI could not generate a summary for this page.");
+    }
     const summary = data.candidates[0].content.parts[0].text;
 
     // Display Results
