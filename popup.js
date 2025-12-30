@@ -1,76 +1,84 @@
+// Elements
 const summarizeBtn = document.getElementById('summarizeBtn');
 const loader = document.getElementById('loader');
 const resultContainer = document.getElementById('resultContainer');
 const output = document.getElementById('output');
-const copyBtn = document.getElementById('copyBtn');
+const themeToggle = document.getElementById('themeToggle');
+const lengthSelect = document.getElementById('lengthSelect');
+const summarizerTab = document.getElementById('summarizerTab');
+const historyTab = document.getElementById('historyTab');
+const historyList = document.getElementById('historyList');
 
+// 1. Initial Theme & History Load
+chrome.storage.local.get(['theme', 'history'], (data) => {
+    if (data.theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggle.checked = true;
+    }
+});
+
+// 2. Tab Switching
+summarizerTab.addEventListener('click', () => {
+    document.getElementById('summarizerView').classList.remove('hidden');
+    document.getElementById('historyView').classList.add('hidden');
+    summarizerTab.classList.add('active');
+    historyTab.classList.remove('active');
+});
+
+historyTab.addEventListener('click', () => {
+    document.getElementById('summarizerView').classList.add('hidden');
+    document.getElementById('historyView').classList.remove('hidden');
+    summarizerTab.classList.remove('active');
+    historyTab.classList.add('active');
+    loadHistory();
+});
+
+// 3. Dark Mode Toggle
+themeToggle.addEventListener('change', () => {
+    const isDark = themeToggle.checked;
+    document.body.classList.toggle('dark-mode', isDark);
+    chrome.storage.local.set({ theme: isDark ? 'dark' : 'light' });
+});
+
+// 4. Summarization Logic
 summarizeBtn.addEventListener('click', async () => {
-    // 1. Reset UI
     loader.classList.remove('hidden');
     resultContainer.classList.add('hidden');
     summarizeBtn.disabled = true;
-    output.innerText = '';
 
     try {
-        // 2. GET API KEY FROM STORAGE
-        const storedData = await chrome.storage.local.get('geminiApiKey');
-        const apiKey = storedData.geminiApiKey;
+        const { geminiApiKey: token } = await chrome.storage.local.get('geminiApiKey');
+        if (!token) throw new Error("API Token missing in Options!");
 
-        if (!apiKey) {
-            throw new Error("API Key missing! Right-click the extension icon, go to 'Options', and save your key.");
-        }
-
-        // 3. Get Tab and extract text
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        
-        if (tab.url.startsWith("chrome://") || tab.url.startsWith("edge://")) {
-            throw new Error("Chrome blocks AI on system pages. Try a news article.");
-        }
-
-        const injection = await chrome.scripting.executeScript({
+        const results = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: () => document.body.innerText,
         });
 
-        if (!injection || !injection[0]?.result) {
-            throw new Error("Could not read page content.");
-        }
+        const text = results[0].result.trim().substring(0, 7000);
+        const detail = lengthSelect.value === 'short' ? "3 points" : lengthSelect.value === 'long' ? "detailed paragraph" : "5 bullet points";
 
-        const pageText = injection[0].result.trim().substring(0, 12000);
-
-        // 4. API CALL
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-        const response = await fetch(url, {
+        const response = await fetch("https://router.huggingface.co/v1/chat/completions", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-                contents: [{ 
-                    parts: [{ text: `Summarize this in 3-5 clear bullet points: ${pageText}` }] 
-                }]
+                model: "meta-llama/Llama-3.3-70B-Instruct",
+                messages: [{ role: "user", content: `Summarize in ${detail}: ${text}` }],
+                max_tokens: 500
             })
         });
 
         const data = await response.json();
-
-        if (data.error) {
-            if (data.error.message.includes("API key not valid")) {
-                throw new Error("Invalid API Key. Please check your Settings/Options.");
-            }
-            throw new Error(data.error.message);
-        }
-
-        // 5. Display Result
-        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-            output.innerText = data.candidates[0].content.parts[0].text;
-            loader.classList.add('hidden');
-            resultContainer.classList.remove('hidden');
-        } else {
-            throw new Error("AI couldn't generate a summary. The page might be too short or protected.");
-        }
-
-    } catch (error) {
-        output.innerText = "Error: " + error.message;
+        const summary = data.choices[0].message.content;
+        
+        output.innerText = summary;
+        saveHistory(tab.title, summary);
+        
+        loader.classList.add('hidden');
+        resultContainer.classList.remove('hidden');
+    } catch (err) {
+        output.innerText = "Error: " + err.message;
         loader.classList.add('hidden');
         resultContainer.classList.remove('hidden');
     } finally {
@@ -78,9 +86,25 @@ summarizeBtn.addEventListener('click', async () => {
     }
 });
 
-// Copy logic
-copyBtn.addEventListener('click', () => {
-    navigator.clipboard.writeText(output.innerText);
-    copyBtn.innerText = "✅";
-    setTimeout(() => { copyBtn.innerText = "📋"; }, 2000);
+// 5. History Helpers
+async function saveHistory(title, summary) {
+    const { history = [] } = await chrome.storage.local.get('history');
+    const updated = [{ title, summary, date: new Date().toLocaleDateString() }, ...history].slice(0, 10);
+    await chrome.storage.local.set({ history: updated });
+}
+
+async function loadHistory() {
+    const { history = [] } = await chrome.storage.local.get('history');
+    historyList.innerHTML = history.map(h => `
+        <div class="history-item">
+            <div class="history-date">${h.date}</div>
+            <strong>${h.title}</strong>
+            <p>${h.summary}</p>
+        </div>
+    `).join('') || "<p>No history found.</p>";
+}
+
+document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
+    await chrome.storage.local.set({ history: [] });
+    loadHistory();
 });
