@@ -1,27 +1,26 @@
-# 🚀 Gemini Web Summarizer
+# AI Summarizer Pro 2025 🚀
 
-A modern Chrome Extension that uses Google's Gemini 1.5 Flash AI to summarize any webpage into concise bullet points instantly.
+A modern Chrome Extension that uses LLMs (Llama 3.3) to provide instant, high-quality summaries of any webpage. Built with Manifest V3 and Glassmorphism UI.
 
 ## ✨ Features
-- **AI-Powered**: Leverages Gemini 1.5 Flash for high-quality summaries.
-- **Privacy-Focused**: Stores your API key locally in your browser (not in the code).
-- **Interactive UI**: Includes a loading spinner and a "copy to clipboard" feature.
-- **Modern Design**: Clean, responsive popup interface.
+- **AI Powered:** Integrated with Hugging Face Inference Router.
+- **Dark Mode:** Automatic theme switching with persistence.
+- **Local History:** Saves your last 10 summaries locally using Chrome Storage.
+- **Privacy First:** Your API key is stored locally on your device and never sent to our servers.
 
 ## 🛠️ Installation
-1. Download this repository as a ZIP or clone it using `git clone`.
-2. Open Google Chrome and go to `chrome://extensions/`.
-3. Enable **Developer mode** in the top right corner.
-4. Click **Load unpacked** and select the folder containing these files.
+1. Clone this repository.
+2. Go to `chrome://extensions/` in your browser.
+3. Enable **Developer Mode** (top right).
+4. Click **Load unpacked** and select the project folder.
 
 ## 🔑 Setup
-1. Get a free API Key from [Google AI Studio](https://aistudio.google.com/).
-2. Right-click the extension icon in your Chrome toolbar.
-3. Select **Options**.
-4. Paste your API key and click **Save Key**.
-5. Navigate to any article and click **Generate Summary**!
+This extension requires a **Hugging Face Token** to function:
+1. Get a free token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens).
+2. Ensure the token has "Make calls to Inference Providers" enabled.
+3. Right-click the extension icon -> **Options** and paste your token.
 
-## 📁 Project Structure
-- `manifest.json`: Configuration and permissions.
-- `popup.html/js/css`: Main extension interface and logic.
-- `options.html/js`: Secure API key management.
+## 🏗️ Tech Stack
+- **Manifest V3**
+- **Hugging Face Router API**
+- **Glassmorphism CSS**
