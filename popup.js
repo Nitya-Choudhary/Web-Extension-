@@ -5,7 +5,7 @@ const output = document.getElementById('output');
 const copyBtn = document.getElementById('copyBtn');
 
 summarizeBtn.addEventListener('click', async () => {
-  // UI State Reset
+  // UI Reset
   loader.classList.remove('hidden');
   resultContainer.classList.add('hidden');
   summarizeBtn.disabled = true;
@@ -13,16 +13,26 @@ summarizeBtn.addEventListener('click', async () => {
   try {
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-    // Extract text
-    const results = await chrome.scripting.executeScript({
+    // 1. Safety Check: Don't run on restricted Chrome pages
+    if (tab.url.startsWith("chrome://") || tab.url.startsWith("edge://") || tab.url.startsWith("about:")) {
+      throw new Error("Cannot summarize system pages. Try a news article or blog.");
+    }
+
+    // 2. Extract text from the page
+    const scriptResult = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: () => document.body.innerText,
     });
 
-    const pageText = results[0].result.substring(0, 15000); 
+    // Check if scriptResult[0] exists to avoid "reading '0'" error
+    if (!scriptResult || !scriptResult[0] || !scriptResult[0].result) {
+      throw new Error("Could not read text from this page.");
+    }
 
-    // API Call
-    const apiKey = "AIzaSyBF1qa0LHOovSiRdRlzPRsIW499EVlI4SA";
+    const pageText = scriptResult[0].result.substring(0, 15000); 
+
+    // 3. API Call
+    const apiKey = "YOUR_NEW_API_KEY"; // PUT YOUR NEW KEY HERE
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
@@ -35,26 +45,19 @@ summarizeBtn.addEventListener('click', async () => {
 
     const data = await response.json();
     
-    // Check if the API returned an error
     if (data.error) {
       throw new Error(data.error.message || "API Error");
     }
 
-    // Check if candidates exist before reading index 0
-    if (data.candidates && data.candidates.length > 0) {
-      const summary = data.candidates[0].content.parts[0].text;
-      output.innerText = summary;
+    // 4. Safe data extraction
+    if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+      output.innerText = data.candidates[0].content.parts[0].text;
       loader.classList.add('hidden');
       resultContainer.classList.remove('hidden');
     } else {
-      throw new Error("AI could not generate a summary for this page.");
+      throw new Error("AI returned an empty response. Try a different page.");
     }
-    const summary = data.candidates[0].content.parts[0].text;
 
-    // Display Results
-    output.innerText = summary;
-    loader.classList.add('hidden');
-    resultContainer.classList.remove('hidden');
   } catch (error) {
     output.innerText = "Error: " + error.message;
     loader.classList.add('hidden');
@@ -64,7 +67,7 @@ summarizeBtn.addEventListener('click', async () => {
   }
 });
 
-// Copy to Clipboard Feature
+// Copy Feature
 copyBtn.addEventListener('click', () => {
   navigator.clipboard.writeText(output.innerText);
   copyBtn.innerText = "✅";
