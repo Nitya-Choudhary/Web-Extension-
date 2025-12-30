@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h2>✨ Gemini Summarizer</h2>
+    </header>
+
+    <div class="actions">
+      <button id="summarizeBtn">Generate Summary</button>
+    </div>
+
+    <div id="loader" class="hidden">
+      <div class="spinner"></div>
+      <p>Reading page content...</p>
+    </div>
+
+    <div id="resultContainer" class="hidden">
+      <div class="output-header">
+        <span>Summary</span>
+        <button id="copyBtn" title="Copy to clipboard">📋</button>
+      </div>
+      <div id="output"></div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
