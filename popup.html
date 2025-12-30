@@ -1,31 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>AI Summarizer Pro</title>
+    <link rel="stylesheet" href="popup.css">
 </head>
-<body>
-  <div class="container">
-    <header>
-      <h2>✨ Gemini Summarizer</h2>
-    </header>
-
-    <div class="actions">
-      <button id="summarizeBtn">Generate Summary</button>
+<body id="body">
+    <div class="theme-container">
+        <label class="switch">
+            <input type="checkbox" id="themeToggle">
+            <span class="slider round"></span>
+        </label>
+        <span id="themeLabel">🌙</span>
     </div>
 
-    <div id="loader" class="hidden">
-      <div class="spinner"></div>
-      <p>Reading page content...</p>
+    <div class="tabs">
+        <button id="summarizerTab" class="tab-btn active">Summarizer</button>
+        <button id="historyTab" class="tab-btn">History</button>
     </div>
 
-    <div id="resultContainer" class="hidden">
-      <div class="output-header">
-        <span>Summary</span>
-        <button id="copyBtn" title="Copy to clipboard">📋</button>
-      </div>
-      <div id="output"></div>
+    <div class="glass-card">
+        <div id="summarizerView">
+            <h2 class="title">AI Summarizer</h2>
+            <div class="input-group">
+                <label>Summary Length</label>
+                <select id="lengthSelect">
+                    <option value="short">Short (3 points)</option>
+                    <option value="medium" selected>Medium (5 points)</option>
+                    <option value="long">Long (Detailed)</option>
+                </select>
+            </div>
+            <button id="summarizeBtn" class="primary-btn">Generate Summary</button>
+            <div id="loader" class="hidden">
+                <div class="spinner"></div>
+                <p>Analyzing context...</p>
+            </div>
+            <div id="resultContainer" class="hidden">
+                <div class="result-header">
+                    <h3>Insights</h3>
+                    <button id="copyBtn" class="icon-btn">📋</button>
+                </div>
+                <div id="output"></div>
+            </div>
+        </div>
+
+        <div id="historyView" class="hidden">
+            <h2 class="title">History</h2>
+            <div id="historyList"></div>
+            <button id="clearHistoryBtn" class="secondary-btn">Clear History</button>
+        </div>
     </div>
-  </div>
-  <script src="popup.js"></script>
+
+    <script src="popup.js"></script>
 </body>
 </html>
