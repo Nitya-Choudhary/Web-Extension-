@@ -32,7 +32,7 @@ summarizeBtn.addEventListener('click', async () => {
     const pageText = scriptResult[0].result.substring(0, 15000); 
 
     // 3. API Call
-    const apiKey = "YOUR_NEW_API_KEY"; // PUT YOUR NEW KEY HERE
+    const apiKey = "AIzaSyBF1qa0LHOovSiRdRlzPRsIW499EVlI4SA"; // PUT YOUR NEW KEY HERE
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
