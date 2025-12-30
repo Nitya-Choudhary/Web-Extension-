@@ -1,9 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Page Summarizer",
+  "name": "Gemini Web Summarizer",
   "version": "1.0",
+  "description": "Summarizes the current webpage using AI.",
   "permissions": ["activeTab", "scripting"],
   "action": {
-    "default_popup": "popup.html"
-  }
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "host_permissions": ["https://generativelanguage.googleapis.com/*"]
 }
